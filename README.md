@@ -35,6 +35,13 @@
      - `dataset_parallel.csv` : ข้อมูลคู่แปล en-th (ถ้ามี)
      - `dataset_text_only.txt` : ข้อความล้วน
      - `dataset_text_only_dedup.txt` : ข้อความล้วนแบบลบซ้ำ
+     - `dataset_parallel_both_directions.csv` : ข้อมูลคู่แปลสองทาง (Thai→English และ English→Thai)
+
+## ข้อมูลชุด parallel (bidirectional)
+- `dataset_parallel_both_directions.csv` :
+  - รวมทั้งคู่แปล EN→TH และ TH→EN ในไฟล์เดียว (column: src, tgt)
+  - เหมาะสำหรับ train โมเดลแปลสองทาง (bidirectional NMT)
+  - ถ้าต้องการ dedup เฉพาะ src หรือ tgt ให้แจ้งเพิ่มได้
 
 ## ตัวอย่างโค้ดหลัก (App.py)
 ```python
@@ -49,7 +56,13 @@ if __name__ == '__main__':
     export_parallel_dataset()
     export_clean_text()
     export_clean_text_dedup()
+    export_parallel_both_directions()
 ```
+
+## หมายเหตุเกี่ยวกับประโยคซ้ำ
+- ถ้า src, tgt เหมือนกันเป๊ะ จะถูกลบซ้ำโดยอัตโนมัติ
+- ถ้า src เหมือนกันแต่ tgt ต่าง (หรือมีข้อความต่อเนื่อง/overlap) จะไม่ถือว่าซ้ำ
+- ถ้าต้องการ dedup เฉพาะ src หรือ fuzzy match แจ้งได้
 
 ## ข้อควรระวัง
 - วิดีโอบางรายการอาจไม่มีซับไตเติลภาษาไทยหรืออังกฤษ
