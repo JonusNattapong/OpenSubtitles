@@ -5,6 +5,7 @@ import re
 import csv
 import pandas as pd
 import json
+import time
 
 def download_subtitles(video_urls, sub_langs, output_dir='subtitles'):
     os.makedirs(output_dir, exist_ok=True)
@@ -19,21 +20,26 @@ def download_subtitles(video_urls, sub_langs, output_dir='subtitles'):
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         for url in video_urls:
             print(f"Downloading subtitles for {url}")
-            info = ydl.extract_info(url, download=False)
-            vid = info.get('id')
-            found = False
-            for lang in sub_langs:
-                vtt_path = os.path.join(output_dir, f"{vid}.{lang}.vtt")
-                if os.path.exists(vtt_path):
-                    print(f"  - Subtitle already exists: {vtt_path}")
-                    found = True
-                elif (lang in info.get('subtitles', {}) or lang in info.get('automatic_captions', {})):
-                    print(f"  - Downloading subtitle: {lang}")
-                    ydl.download([url])
-                    found = True
-                else:
-                    print(f"  - No subtitle found for language: {lang}")
-            results.append({'video_id': vid, 'url': url, 'subtitle_found': found})
+            try:
+                info = ydl.extract_info(url, download=False)
+                vid = info.get('id')
+                found = False
+                for lang in sub_langs:
+                    vtt_path = os.path.join(output_dir, f"{vid}.{lang}.vtt")
+                    if os.path.exists(vtt_path):
+                        print(f"  - Subtitle already exists: {vtt_path}")
+                        found = True
+                    elif (lang in info.get('subtitles', {}) or lang in info.get('automatic_captions', {})):
+                        print(f"  - Downloading subtitle: {lang}")
+                        ydl.download([url])
+                        found = True
+                    else:
+                        print(f"  - No subtitle found for language: {lang}")
+                results.append({'video_id': vid, 'url': url, 'subtitle_found': found, 'error': None})
+            except Exception as e:
+                print(f"  - Error: {e}")
+                results.append({'video_id': None, 'url': url, 'subtitle_found': False, 'error': str(e)})
+            time.sleep(5)  # ดีเลย์ 5 วินาทีระหว่างแต่ละ request
     return results
 
 def parse_vtt(vtt_path):
