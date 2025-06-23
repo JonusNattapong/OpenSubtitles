@@ -29,6 +29,7 @@ def download_subtitles(video_urls, sub_langs, output_dir='subtitles'):
                     if os.path.exists(vtt_path):
                         print(f"  - Subtitle already exists: {vtt_path}")
                         found = True
+                        continue  # ข้ามการดาวน์โหลดถ้ามีไฟล์อยู่แล้ว
                     elif (lang in info.get('subtitles', {}) or lang in info.get('automatic_captions', {})):
                         print(f"  - Downloading subtitle: {lang}")
                         ydl.download([url])
@@ -132,6 +133,23 @@ def export_clean_text_dedup(output_dir='subtitles'):
         for line in unique_lines:
             f.write(line + '\n')
     print('Exported deduplicated text dataset to', f'{output_dir}/dataset_text_only_dedup.txt')
+
+def export_parallel_both_directions(input_path='subtitles/dataset_parallel_long.csv', output_path='subtitles/dataset_parallel_both_directions.csv'):
+    """
+    รวมชุดข้อมูลแปล EN→TH และ TH→EN เป็น training set เดียว (ลบแถวซ้ำ)
+    """
+    import pandas as pd
+    df = pd.read_csv(input_path)
+    # เตรียม EN→TH
+    df1 = df[['text_original', 'text_thai']].copy()
+    df1.columns = ['src', 'tgt']
+    # เตรียม TH→EN
+    df2 = df[['text_thai', 'text_original']].copy()
+    df2.columns = ['src', 'tgt']
+    # รวมและลบซ้ำ
+    df_both = pd.concat([df1, df2], ignore_index=True).drop_duplicates()
+    df_both.to_csv(output_path, index=False, encoding='utf-8')
+    print(f'Exported parallel both-directions dataset to {output_path}')
 
 if __name__ == '__main__':
     # วางลิงก์ทั้งหมดที่นี่
@@ -366,3 +384,5 @@ if __name__ == '__main__':
     export_clean_text()
     print('=== Exporting deduplicated text dataset ===')
     export_clean_text_dedup()
+    print('=== Exporting parallel both-directions dataset ===')
+    export_parallel_both_directions()
