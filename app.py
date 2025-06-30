@@ -6,6 +6,7 @@ import csv
 import pandas as pd
 import json
 import time
+import argparse
 
 def download_subtitles(video_urls, sub_langs, output_dir='subtitles'):
     os.makedirs(output_dir, exist_ok=True)
@@ -151,8 +152,11 @@ def export_parallel_both_directions(input_path='subtitles/dataset_parallel_long.
     df_both.to_csv(output_path, index=False, encoding='utf-8')
     print(f'Exported parallel both-directions dataset to {output_path}')
 
-if __name__ == '__main__':
-    # วางลิงก์ทั้งหมดที่นี่
+def main():
+    parser = argparse.ArgumentParser(description='OpenSubtitles YouTube Dataset Pipeline')
+    parser.add_argument('task', nargs='?', default='all', choices=['all', 'download', 'export', 'parallel', 'clean', 'dedup', 'export-both'], help='Task to run')
+    args = parser.parse_args()
+
     video_urls = [
         "https://www.youtube.com/watch?v=tEkYbEkl0No",
         "https://www.youtube.com/watch?v=OsTFVOMNG00",
@@ -374,15 +378,25 @@ if __name__ == '__main__':
         "https://www.youtube.com/watch?v=jA3Pa9E2n-g",
     ]
     sub_langs = ['en', 'th']
-    print('=== Downloading subtitles ===')
-    download_subtitles(video_urls, sub_langs)
-    print('=== Exporting all VTT to datasets ===')
-    export_all_vtt_to_datasets()
-    print('=== Exporting parallel dataset (en-th) ===')
-    export_parallel_dataset()
-    print('=== Exporting cleaned text dataset ===')
-    export_clean_text()
-    print('=== Exporting deduplicated text dataset ===')
-    export_clean_text_dedup()
-    print('=== Exporting parallel both-directions dataset ===')
-    export_parallel_both_directions()
+
+    if args.task == 'download' or args.task == 'all':
+        print('=== Downloading subtitles ===')
+        download_subtitles(video_urls, sub_langs)
+    if args.task == 'export' or args.task == 'all':
+        print('=== Exporting all VTT to datasets ===')
+        export_all_vtt_to_datasets()
+    if args.task == 'parallel' or args.task == 'all':
+        print('=== Exporting parallel dataset (en-th) ===')
+        export_parallel_dataset()
+    if args.task == 'clean' or args.task == 'all':
+        print('=== Exporting cleaned text dataset ===')
+        export_clean_text()
+    if args.task == 'dedup' or args.task == 'all':
+        print('=== Exporting deduplicated text dataset ===')
+        export_clean_text_dedup()
+    if args.task == 'export-both' or args.task == 'all':
+        print('=== Exporting parallel both-directions dataset ===')
+        export_parallel_both_directions()
+
+if __name__ == '__main__':
+    main()
